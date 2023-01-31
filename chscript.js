@@ -27,6 +27,8 @@ let selectedPiece;
 const chessPiecesArr = [];
 
 class ChessPiece {
+  hasBeenMoved = false;
+
   constructor(namestring) {
     this.namestring = namestring;
     this.curCoords = this.namestring.split("-").slice(-2).join("-"); // CR: code smell , besser direkt initialisierren im konstruktor
@@ -79,6 +81,8 @@ class ChessPiece {
 
     placeImg(coords, this);
     this.updateAllPiecesCoords(coords);
+    if (this instanceof King && !this.hasBeenMoved) this.determineCastling();
+    if (!this.hasBeenMoved) this.hasBeenMoved = true;
     if (this instanceof Pawn) {
       this.changePieceIfLastRow();
     } else {
@@ -132,6 +136,52 @@ class King extends ChessPiece {
     [1, -1],
     [-1, -1],
   ];
+
+  determineCastling() {
+    console.log("Castling!");
+  }
+
+  checkSideforCastling(rook) {
+    if (rook.hasBeenMoved) return [];
+    const isKingSide = rook.namestring.at(7) === "7" ? true : false;
+    const coordsToCheck = isKingSide
+      ? [`5-${rook.namestring.at(-1)}`, `6-${rook.namestring.at(-1)}`]
+      : [
+          `1-${rook.namestring.at(-1)}`,
+          `2-${rook.namestring.at(-1)}`,
+          `3-${rook.namestring.at(-1)}`,
+        ];
+    const pieceInTheWay = coordsToCheck.some(
+      (coords) =>
+        allPiecesCoords[activePlayer].has(coords) ||
+        allPiecesCoords[rivalPlayer].has(coords)
+    );
+    if (pieceInTheWay) return [];
+    return isKingSide ? [2, 0] : [-2, 0];
+  }
+
+  checkForCastling() {
+    if (this.hasBeenMoved) return [...this.moveArr];
+    const rookKingSide = chessPiecesArr.find((obj) =>
+      obj.namestring.startsWith(
+        `rook_${activePlayer === 0 ? "w" : "b"}-7-${
+          activePlayer === 0 ? "7" : "0"
+        }`
+      )
+    );
+    const rookQueenSide = chessPiecesArr.find((obj) =>
+      obj.namestring.startsWith(
+        `rook_${activePlayer === 0 ? "w" : "b"}-0-${
+          activePlayer === 0 ? "7" : "0"
+        }`
+      )
+    );
+    return [
+      ...this.moveArr,
+      this.checkSideforCastling(rookKingSide),
+      this.checkSideforCastling(rookQueenSide),
+    ];
+  }
 
   checkIfPermitted(moveArr) {
     const moveCopy = [...moveArr];
@@ -194,19 +244,8 @@ class King extends ChessPiece {
   }
 
   moveset = function () {
-    //Vorchlag CR: globale archetypische arraybewegungsmuster erstellen die man hier zu dem finalen array konkateniert
-    // const moveArr = [
-    //   [0, 1],
-    //   [0, -1],
-    //   [1, 0],
-    //   [-1, 0],
-    //   [1, 1],
-    //   [-1, 1],
-    //   [1, -1],
-    //   [-1, -1],
-    // ];
-
-    const checkedMoves = this.checkIfPermitted(this.moveArr);
+    const castling = this.checkForCastling();
+    const checkedMoves = this.checkIfPermitted([...this.moveArr, ...castling]);
 
     return checkedMoves;
   };
