@@ -70,7 +70,7 @@ class ChessPiece {
   }
 
   movePiece(coords) {
-    if (!this.possibleMovs.includes(coords)) return;
+    // if (!this.possibleMovs.includes(coords)) return;
     const currentImg = document.getElementById(`img-${this.curCoords}`);
 
     // this.animateMovement(currentImg, coords);
@@ -83,6 +83,7 @@ class ChessPiece {
     this.updateAllPiecesCoords(coords);
     if (this instanceof King && !this.hasBeenMoved) this.determineCastling();
     if (!this.hasBeenMoved) this.hasBeenMoved = true;
+
     if (this instanceof Pawn) {
       this.changePieceIfLastRow();
     } else {
@@ -137,8 +138,32 @@ class King extends ChessPiece {
     [-1, -1],
   ];
 
+  getKingsColor() {
+    return activePlayer === 0 ? "w" : "b";
+  }
+  getKingsRow() {
+    return activePlayer === 0 ? "7" : "0";
+  }
+
   determineCastling() {
-    console.log("Castling!");
+    const isKingSide = this.curCoords.at(0) === "6";
+    if (!isKingSide && !this.curCoords.at(0) === "2") endMove();
+    const castlingRook = isKingSide
+      ? chessPiecesArr.find((obj) =>
+          obj.namestring.startsWith(
+            `rook_${this.getKingsColor()}-7-${this.getKingsRow()}`
+          )
+        )
+      : chessPiecesArr.find((obj) =>
+          obj.namestring.startsWith(
+            `rook_${this.getKingsColor()}-0-${this.getKingsRow()}`
+          )
+        );
+    const moveCoordsRook = isKingSide
+      ? `5-${this.getKingsRow()}`
+      : `3-${this.getKingsRow()}`;
+    castlingRook.movePiece(moveCoordsRook);
+    endMove();
   }
 
   checkSideforCastling(rook) {
@@ -164,16 +189,12 @@ class King extends ChessPiece {
     if (this.hasBeenMoved) return [...this.moveArr];
     const rookKingSide = chessPiecesArr.find((obj) =>
       obj.namestring.startsWith(
-        `rook_${activePlayer === 0 ? "w" : "b"}-7-${
-          activePlayer === 0 ? "7" : "0"
-        }`
+        `rook_${this.getKingsColor()}-7-${this.getKingsRow()}`
       )
     );
     const rookQueenSide = chessPiecesArr.find((obj) =>
       obj.namestring.startsWith(
-        `rook_${activePlayer === 0 ? "w" : "b"}-0-${
-          activePlayer === 0 ? "7" : "0"
-        }`
+        `rook_${this.getKingsColor()}-0-${this.getKingsRow()}`
       )
     );
     return [
@@ -240,6 +261,12 @@ class King extends ChessPiece {
         );
     }
     this.updateAllPiecesCoords(curCoordKingTempCopy);
+    const checkedMoveArr = Array.from(kingMoveMap.values());
+    if (!checkedMoveArr.includes([1, 0] && checkedMoveArr.includes[(2, 0)]))
+      delete checkedMoveArr.indexOf([2, 0]);
+    if (!checkedMoveArr.includes([-1, 0] && checkedMoveArr.includes[(-2, 0)]))
+      delete checkedMoveArr.indexOf([-2, 0]);
+
     return Array.from(kingMoveMap.values());
   }
 
