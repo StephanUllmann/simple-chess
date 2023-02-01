@@ -81,12 +81,13 @@ class ChessPiece {
 
     placeImg(coords, this);
     this.updateAllPiecesCoords(coords);
-    if (this instanceof King && !this.hasBeenMoved) this.determineCastling();
-    if (!this.hasBeenMoved) this.hasBeenMoved = true;
 
     if (this instanceof Pawn) {
       this.changePieceIfLastRow();
+    } else if (this instanceof King && !this.hasBeenMoved) {
+      this.determineCastling();
     } else {
+      if (!this.hasBeenMoved) this.hasBeenMoved = true;
       endMove();
     }
   }
@@ -147,23 +148,27 @@ class King extends ChessPiece {
 
   determineCastling() {
     const isKingSide = this.curCoords.at(0) === "6";
-    if (!isKingSide && !this.curCoords.at(0) === "2") endMove();
-    const castlingRook = isKingSide
-      ? chessPiecesArr.find((obj) =>
-          obj.namestring.startsWith(
-            `rook_${this.getKingsColor()}-7-${this.getKingsRow()}`
+    if (isKingSide || this.curCoords.at(0) === "2") {
+      const castlingRook = isKingSide
+        ? chessPiecesArr.find((obj) =>
+            obj.namestring.startsWith(
+              `rook_${this.getKingsColor()}-7-${this.getKingsRow()}`
+            )
           )
-        )
-      : chessPiecesArr.find((obj) =>
-          obj.namestring.startsWith(
-            `rook_${this.getKingsColor()}-0-${this.getKingsRow()}`
-          )
-        );
-    const moveCoordsRook = isKingSide
-      ? `5-${this.getKingsRow()}`
-      : `3-${this.getKingsRow()}`;
-    castlingRook.movePiece(moveCoordsRook);
-    endMove();
+        : chessPiecesArr.find((obj) =>
+            obj.namestring.startsWith(
+              `rook_${this.getKingsColor()}-0-${this.getKingsRow()}`
+            )
+          );
+      const moveCoordsRook = isKingSide
+        ? `5-${this.getKingsRow()}`
+        : `3-${this.getKingsRow()}`;
+      castlingRook.movePiece(moveCoordsRook);
+      // endMove();
+    } else {
+      this.hasBeenMoved = true;
+      endMove();
+    }
   }
 
   checkSideforCastling(rook) {
