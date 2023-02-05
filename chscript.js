@@ -70,7 +70,6 @@ class ChessPiece {
   }
 
   movePiece(coords) {
-    // if (!this.possibleMovs.includes(coords)) return;
     const currentImg = document.getElementById(`img-${this.curCoords}`);
 
     // this.animateMovement(currentImg, coords);
@@ -164,7 +163,6 @@ class King extends ChessPiece {
         ? `5-${this.getKingsRow()}`
         : `3-${this.getKingsRow()}`;
       castlingRook.movePiece(moveCoordsRook);
-      // endMove();
     } else {
       this.hasBeenMoved = true;
       endMove();
@@ -641,7 +639,7 @@ boardEl.addEventListener("click", function (e) {
 
   const clickedCoords = e.target.dataset.coords;
   clearSelectionIfPlayersPiece(clickedCoords);
-  if (selectedPiece) {
+  if (selectedPiece && selectedPiece.possibleMovs.includes(clickedCoords)) {
     selectedPiece.movePiece(clickedCoords);
   } else {
     selectedPiece = activatePiece(clickedCoords);
